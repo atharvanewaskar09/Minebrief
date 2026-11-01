@@ -6,6 +6,7 @@ from app.services.equipment_service import (
     update_equipment,
     get_equipment_history
 )
+from app.utils.api_errors import internal_server_error
 
 equipment_bp = Blueprint('equipment', __name__)
 
@@ -23,11 +24,8 @@ def get_equipment_list():
             'success': True,
             'data': data
         }), 200
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+    except Exception:
+        return internal_server_error('Equipment list request failed.')
 
 @equipment_bp.route('/equipment/<int:equipment_id>', methods=['GET'])
 def get_single_equipment(equipment_id):
@@ -65,11 +63,8 @@ def register_equipment():
             'success': False,
             'error': str(ve)
         }), 400
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+    except Exception:
+        return internal_server_error('Equipment creation request failed.')
 
 @equipment_bp.route('/equipment/<int:equipment_id>', methods=['PUT'])
 def update_existing_equipment(equipment_id):
@@ -99,11 +94,8 @@ def update_existing_equipment(equipment_id):
             'success': False,
             'error': str(ve)
         }), 400
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+    except Exception:
+        return internal_server_error('Equipment update request failed.')
 
 @equipment_bp.route('/equipment/<int:equipment_id>/history', methods=['GET'])
 def get_equipment_history_log(equipment_id):

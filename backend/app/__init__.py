@@ -98,9 +98,13 @@ def create_app(config_name=None):
 
     @app.errorhandler(500)
     def internal_server_error(error):
+        app.logger.error(
+            'Unhandled server error.',
+            exc_info=getattr(error, 'original_exception', None) or error,
+        )
         return jsonify({
-            'success': False,
-            'error': 'Internal server error occurred.'
+            'code': 'internal_server_error',
+            'message': 'The server could not complete this request.',
         }), 500
 
     # SQLite remains a convenient local/test fallback. Production uses Alembic.

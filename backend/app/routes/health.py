@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, current_app, jsonify
 from sqlalchemy import text
 from app.models.base import db
 
@@ -11,14 +11,21 @@ def health_check():
     try:
         db.session.execute(text('SELECT 1'))
         db_status = 'connected'
-    except Exception as e:
-        db_status = f'error: {str(e)}'
+    except Exception:
+        current_app.logger.exception('Database health check failed.')
+        db_status = 'unavailable'
 
-    return jsonify({
+    response = {
         'success': db_status == 'connected',
         'data': {
             'status': 'healthy' if db_status == 'connected' else 'degraded',
             'database': db_status,
             'service': 'minebrief-backend'
         }
-    }), 200 if db_status == 'connected' else 500
+    }
+    if db_status != 'connected':
+        response.update({
+            'code': 'database_unavailable',
+            'message': 'The database is temporarily unavailable.',
+        })
+    return jsonify(response), 200 if db_status == 'connected' else 503

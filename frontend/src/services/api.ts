@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { supabase } from './supabase';
+import { getErrorMessage } from '../utils/errorMessage';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
@@ -18,7 +19,9 @@ api.interceptors.request.use(async (config) => {
 
   if (supabase) {
     const { data, error } = await supabase.auth.getSession();
-    if (error) throw error;
+    if (error) {
+      throw new Error(getErrorMessage(error, 'Unable to retrieve the current session.'));
+    }
     if (data.session?.access_token) {
       config.headers.set('Authorization', `Bearer ${data.session.access_token}`);
     } else {
@@ -46,8 +49,9 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
+    const responseMessage = getErrorMessage(error.response?.data, '');
     const customError = {
-      message: error.response?.data?.error || error.response?.data?.message || error.message || 'An unexpected error occurred',
+      message: responseMessage || getErrorMessage(error, 'An unexpected error occurred.'),
       status: error.response?.status,
       data: error.response?.data,
     };

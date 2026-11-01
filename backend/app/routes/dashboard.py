@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, g
 from app.services.dashboard_service import get_dashboard_summary
+from app.utils.api_errors import internal_server_error
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
@@ -25,8 +26,5 @@ def dashboard_summary():
             'success': True,
             'data': data
         }), 200
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+    except Exception:
+        return internal_server_error('Dashboard summary request failed.')

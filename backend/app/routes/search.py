@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, g
 from app.services.search_service import search_operations
+from app.utils.api_errors import internal_server_error
 
 search_bp = Blueprint('search', __name__)
 
@@ -26,8 +27,5 @@ def search_endpoint():
             'success': True,
             'data': results
         }), 200
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+    except Exception:
+        return internal_server_error('Operational search request failed.')

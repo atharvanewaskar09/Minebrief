@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, g
 from app.services.equipment_service import list_maintenance, update_maintenance
+from app.utils.api_errors import internal_server_error
 
 maintenance_bp = Blueprint('maintenance', __name__)
 
@@ -18,11 +19,8 @@ def get_maintenance_list():
             'success': True,
             'data': data
         }), 200
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+    except Exception:
+        return internal_server_error('Maintenance list request failed.')
 
 @maintenance_bp.route('/maintenance/<int:maintenance_id>', methods=['PUT'])
 def update_existing_maintenance(maintenance_id):
@@ -46,8 +44,5 @@ def update_existing_maintenance(maintenance_id):
             'success': True,
             'data': data
         }), 200
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+    except Exception:
+        return internal_server_error('Maintenance update request failed.')

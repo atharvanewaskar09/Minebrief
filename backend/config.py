@@ -1,4 +1,5 @@
 import os
+import tempfile
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 from dotenv import load_dotenv
@@ -20,11 +21,17 @@ def _database_uri():
     return uri
 
 
+def _upload_folder():
+    if os.environ.get('VERCEL') == '1':
+        return os.path.join(tempfile.gettempdir(), 'minebrief', 'uploads')
+    return os.path.join(BASE_DIR, 'uploads')
+
+
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAX_CONTENT_LENGTH = 20 * 1024 * 1024  # 20MB
-    UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
+    UPLOAD_FOLDER = _upload_folder()
     SUPABASE_URL = os.environ.get('SUPABASE_URL', '').rstrip('/')
     SUPABASE_PUBLISHABLE_KEY = os.environ.get('SUPABASE_PUBLISHABLE_KEY', '')
     STORAGE_BUCKET = os.environ.get('SUPABASE_STORAGE_BUCKET', 'minebrief-attachments')
