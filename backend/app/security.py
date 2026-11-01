@@ -36,6 +36,11 @@ def _load_supabase_user(access_token):
             user = json.loads(response.read())
     except HTTPError as error:
         if error.code in (401, 403):
+            current_app.logger.warning(
+                'Supabase rejected the access token: status=%s endpoint=%s',
+                error.code,
+                request.endpoint,
+            )
             return None, _unauthorized('The access token is invalid or expired.')
         return None, (jsonify({
             'success': False,
@@ -141,6 +146,11 @@ def load_request_identity():
         return None
 
     if not authorization.startswith('Bearer '):
+        current_app.logger.warning(
+            'API authentication rejected: missing or malformed bearer authorization; endpoint=%s authorization_present=%s',
+            request.endpoint,
+            bool(authorization),
+        )
         return _unauthorized()
 
     auth_user, error_response = _load_supabase_user(authorization[7:].strip())

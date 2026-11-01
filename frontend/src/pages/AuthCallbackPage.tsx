@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../components/LoadingSpinner';
 import api from '../services/api';
 import { supabase } from '../services/supabase';
+import { getErrorMessage } from '../utils/errorMessage';
 
 export const AuthCallbackPage: React.FC = () => {
   const navigate = useNavigate();
@@ -18,13 +19,17 @@ export const AuthCallbackPage: React.FC = () => {
       const { data, error: sessionError } = await supabase.auth.getSession();
       if (sessionError) throw sessionError;
       if (!data.session) throw new Error('No authenticated session was returned.');
-      await api.get('/auth/profile');
+      await api.get('/auth/profile', {
+        headers: {
+          Authorization: `Bearer ${data.session.access_token}`,
+        },
+      });
       if (active) navigate('/app/dashboard', { replace: true });
     };
 
     void finishSignIn().catch((reason: unknown) => {
       if (active) {
-        setError(reason instanceof Error ? reason.message : 'Unable to complete sign-in.');
+        setError(getErrorMessage(reason, 'Unable to complete sign-in.'));
       }
     });
 

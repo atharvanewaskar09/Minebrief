@@ -17,6 +17,10 @@ api.interceptors.request.use(async (config) => {
     return config;
   }
 
+  if (config.headers.has('Authorization')) {
+    return config;
+  }
+
   if (supabase) {
     const { data, error } = await supabase.auth.getSession();
     if (error) {
