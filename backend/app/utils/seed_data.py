@@ -1,4 +1,5 @@
 from datetime import date, datetime, timedelta
+from sqlalchemy import select
 from app.models.base import db
 from app.models.workspace import Workspace
 from app.models.user import User
@@ -52,6 +53,17 @@ def seed_demo_data(force=False):
     """
     existing = Workspace.query.filter_by(name=DEMO_WORKSPACE_NAME, is_demo=True).first()
     if existing and not force:
+        report_ids = select(ShiftReport.id).where(
+            ShiftReport.workspace_id == existing.id
+        )
+        Attendance.query.filter(
+            Attendance.workspace_id.is_(None),
+            Attendance.report_id.in_(report_ids),
+        ).update(
+            {Attendance.workspace_id: existing.id},
+            synchronize_session=False,
+        )
+        db.session.commit()
         return existing
 
     if existing and force:
@@ -181,6 +193,7 @@ def seed_demo_data(force=False):
 
         # Attendance Record
         attendance = Attendance(
+            workspace_id=workspace.id,
             report_id=report.id,
             report_date=rep_date,
             shift=shift,
